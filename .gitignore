@@ -1,0 +1,21 @@
+# --- Données brutes et sorties : jamais dans Git ---------------------------
+# transaction.csv fait ~52 Mo : trop volumineux pour GitHub et ce n'est pas
+# du code. Chaque membre pose ses CSV dans data/raw/ en local (voir README).
+data/raw/*
+!data/raw/.gitkeep
+data/clean/*
+!data/clean/.gitkeep
+
+# --- Supports de cours ------------------------------------------------------
+*.pdf
+
+# --- Python -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# --- OS / éditeur -----------------------------------------------------------
+.DS_Store
+Thumbs.db
