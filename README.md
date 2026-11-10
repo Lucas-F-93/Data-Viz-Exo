@@ -29,10 +29,15 @@ Chaque fichier CSV a un seul responsable — une seule personne ne peut pas
 | _[à compléter]_ | `price.csv` | `feature/clean-price` |
 | _[à compléter]_ | `loss_rate.csv` | `feature/clean-loss-rate` |
 
+👉 **Note de passation pour le responsable de `price.csv` / `loss_rate.csv`** :
+[NOTE_COLLEGUE.md](NOTE_COLLEGUE.md) — ce qui a été fait + sa to-do étape
+par étape.
+
 ## Structure du repo
 
 ```
 ├── README.md                        ← ce fichier (rendu : étapes 1 à 3)
+├── NOTE_COLLEGUE.md                 ← passation : to-do du responsable price/loss_rate
 ├── data/
 │   ├── raw/                         ← CSV bruts, IGNORÉS par Git (~52 Mo)
 │   └── clean/                       ← sorties nettoyées, ignorées aussi
