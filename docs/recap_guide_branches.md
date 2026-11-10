@@ -188,7 +188,8 @@ violée, le pipeline **échoue** au lieu de produire une donnée fausse.
 
 ### Étape H — Ce qui reste à faire
 
-1. Le collègue accepte l'invitation, clone, suit `NOTE_COLLEGUE.md` ;
+1. Le collègue accepte l'invitation, clone le repo, et suit le contrat
+   d'équipe (`docs/etape2_modele_donnees.md`, section 4) ;
 2. il pousse `feature/clean-price` et `feature/clean-loss-rate`, les fusionne
    dans `develop` ;
 3. on relance `python scripts/etape3_consolidate.py` ;
