@@ -1,4 +1,4 @@
-"""Étape 2 — Génération de l'image du schéma en étoile.
+"""Étape 2 — Génération de l'image du schéma en étoile (les 4 CSV).
 
 Usage :
     python scripts/etape2_star_schema.py
@@ -6,9 +6,9 @@ Usage :
 Sortie : docs/img/etape2_star_schema.png (référencée par le README et par
 docs/etape2_modele_donnees.md).
 
-Représentation volontairement minimale : nom des tables, leur rôle (table de
-faits / dimension) et les clés primaires / étrangères uniquement. Le détail
-complet des colonnes reste dans docs/etape2_modele_donnees.md.
+Représentation : transaction.csv = table de faits centrale, les 3 autres
+CSV = dimensions. Clés primaires / étrangères uniquement, rôle de chaque
+table écrit dans l'en-tête.
 """
 
 import sys
@@ -43,38 +43,50 @@ def boite(ax, x, y, w, h, titre, role, lignes, couleur, epaisseur=2):
                 color=COULEUR_TEXTE)
 
 
+def liaison(ax, x1, y1, x2, y2, etiquette=""):
+    ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                arrowprops=dict(arrowstyle="-", color="#6b7280", lw=2))
+    if etiquette:
+        ax.text((x1 + x2) / 2, (y1 + y2) / 2 + 0.14, etiquette,
+                fontsize=9, color="#6b7280", ha="center", va="bottom")
+
+
 def main() -> None:
     if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8")
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.set_xlim(0, 12)
+    ax.set_xlim(0, 12.7)
     ax.set_ylim(1.9, 6.8)
     ax.axis("off")
 
-    titre = ax.text(6, 6.45, "Schéma en étoile", ha="center", va="center",
+    titre = ax.text(6.35, 6.55, "Schéma en étoile", ha="center", va="center",
                     fontsize=17, fontweight="bold", color=COULEUR_TEXTE)
 
-    # Table de faits au centre, dimensions autour (liaisons N..1).
-    boite(ax, 4.6, 2.35, 3.2, 1.65, "FACT_SALES", "Table de faits", [
-        "FK  item_code",
-        "FK  date",
+    # ---- Table de faits au centre ------------------------------------------
+    boite(ax, 4.7, 3.15, 3.4, 1.75, "transaction.csv", "Table de faits", [
+        "FK  Item Code",
+        "FK  Date",
     ], COULEUR_FAITS, epaisseur=3)
 
-    boite(ax, 0.7, 2.60, 2.9, 1.15, "DIM_PRODUCT", "Dimension", [
-        "PK  item_code",
+    # ---- Dimensions autour ---------------------------------------------------
+    boite(ax, 0.5, 3.45, 3.0, 1.15, "product.csv", "Dimension", [
+        "PK  Item Code",
     ], COULEUR_DIM)
 
-    boite(ax, 8.4, 2.60, 2.9, 1.15, "DIM_DATE", "Dimension", [
-        "PK  date",
+    boite(ax, 9.2, 4.55, 3.0, 1.15, "price.csv", "Dimension", [
+        "PK  Item Code",
+        "PK  Date",
     ], COULEUR_DIM)
 
-    # Liaisons faits -> dimensions (N faits pour 1 dimension).
-    for x1, x2 in [(4.6, 3.6), (7.8, 8.4)]:
-        ax.annotate("", xy=(x2, 3.175), xytext=(x1, 3.175),
-                    arrowprops=dict(arrowstyle="-", color="#6b7280", lw=2))
-    ax.text(4.1, 3.33, "N..1", fontsize=9, color="#6b7280", ha="center")
-    ax.text(8.1, 3.33, "N..1", fontsize=9, color="#6b7280", ha="center")
+    boite(ax, 9.2, 2.45, 3.0, 1.15, "loss_rate.csv", "Dimension", [
+        "PK  Item Code",
+    ], COULEUR_DIM)
+
+    # ---- Liaisons faits -> dimensions ---------------------------------------
+    liaison(ax, 3.5, 4.02, 4.7, 4.02, "Item Code")
+    liaison(ax, 8.1, 4.72, 9.2, 5.12, "Item Code + Date")
+    liaison(ax, 8.1, 3.55, 9.2, 3.02, "Item Code")
 
     # Contrôle anti-superposition : le titre ne doit chevaucher aucune table.
     fig.canvas.draw()

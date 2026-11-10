@@ -58,67 +58,46 @@ erDiagram
     }
 ```
 
-## 2. Schéma en étoile (couche Gold)
+## 2. Schéma en étoile (les 4 CSV)
 
-**Grain de la table de faits : 1 ligne = 1 ligne de caisse.**
+**Table de faits centrale : `transaction.csv`** (grain : 1 ligne = 1 ligne de
+caisse). Les 3 autres CSV l'entourent en **dimensions** :
 
-- `FACT_SALES` au centre : les mesures (quantité, prix, CA) + les clés vers
-  les dimensions ;
-- les attributs descriptifs (nom, catégorie, calendrier) partent dans les
-  dimensions, **dédupliqués** : 251 lignes de produits au lieu de 878 503.
-
-| Élément | Table | Contenu |
+| Table | Rôle | Clé |
 |---|---|---|
-| **Table de faits** | `FACT_SALES` | `item_code` (FK), `date` (FK), `quantity_kilo` (signée : négative = retour), `unit_selling_price`, `sales_amount` = qté × prix, `is_return`, `is_discount`, `hour` |
-| Dimension | `DIM_PRODUCT` | `item_code` (PK), `item_name`, `category_code`, `category_name` (normalisée : `\xa0` → espace), `loss_rate_pct` |
-| Dimension | `DIM_DATE` | `date` (PK), `year`, `quarter`, `month`, `month_name`, `day`, `day_name`, `day_of_week`, `week_of_year`, `is_last_12m` (période cible 07/2022 → 06/2023) |
+| `transaction.csv` | **Table de faits** | FK `Item Code`, FK `Date` |
+| `product.csv` | Dimension | PK `Item Code` |
+| `price.csv` | Dimension | PK composite (`Item Code`, `Date`) |
+| `loss_rate.csv` | Dimension | PK `Item Code` |
 
-**Variantes et justifications :**
+Liaisons :
 
-- `wholesale_price` (de `price.csv`) sera **rattaché à la vente** dans la
-  vue consolidée via la jointure (`Item Code`, `Date`) — 218/246 produits ont
-  plusieurs prix dans le temps, on ne peut donc pas le figer dans la dimension
-  produit. Il sert au calcul de la **marge brute** (prix de vente − prix
-  d'achat), KPI demandé par le Comex.
-- `loss_rate` est quasi-statique par produit → attribut de `DIM_PRODUCT`.
-- Les colonnes `Sale or Return` et `Discount` deviennent des indicateurs
-  binaires (`is_return`, `is_discount`) : directement filtrables dans le
-  dashboard, et la quantité vendue « sans les retours » (dictionnaire de
-  données) s'obtient avec `is_return = 0`.
+- `transaction` → `product` et `loss_rate` : par `Item Code` ;
+- `transaction` → `price` : par (`Item Code`, `Date`) — 218/246 produits
+  changent de prix d'achat dans le temps, d'où la clé composite ;
+- les **mesures** (quantité, prix, CA) restent dans la table de faits, les
+  **attributs descriptifs** (noms, catégories, taux de perte) restent dans
+  les dimensions, dédupliqués : 251 lignes de `product` au lieu de 878 503.
 
 ```mermaid
 erDiagram
-    DIM_DATE ||--o{ FACT_SALES : "date (N..1)"
-    DIM_PRODUCT ||--o{ FACT_SALES : "item_code (N..1)"
+    PRODUCT ||--o{ TRANSACTION : "Item Code"
+    LOSS_RATE ||--o{ TRANSACTION : "Item Code"
+    PRICE ||--o{ TRANSACTION : "Item Code + Date"
 
-    FACT_SALES {
+    TRANSACTION {
         varchar item_code FK
         date date FK
-        int hour
-        float quantity_kilo
-        float unit_selling_price
-        float sales_amount
-        int is_return
-        int is_discount
     }
-    DIM_DATE {
-        date date PK
-        int year
-        int quarter
-        int month
-        varchar month_name
-        int day
-        varchar day_name
-        int day_of_week
-        int week_of_year
-        int is_last_12m
-    }
-    DIM_PRODUCT {
+    PRODUCT {
         varchar item_code PK
-        varchar item_name
-        varchar category_code
-        varchar category_name
-        float loss_rate_pct
+    }
+    PRICE {
+        varchar item_code PK
+        date date PK
+    }
+    LOSS_RATE {
+        varchar item_code PK
     }
 ```
 
