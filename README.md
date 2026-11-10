@@ -29,6 +29,11 @@ Chaque fichier CSV a un seul responsable — une seule personne ne peut pas
 | _[à compléter]_ | `price.csv` | `feature/clean-price` |
 | _[à compléter]_ | `loss_rate.csv` | `feature/clean-loss-rate` |
 
+👉 Le responsable de `price.csv` / `loss_rate.csv` trouve les attentes exactes
+(noms de fichiers, colonnes) dans le **contrat d'équipe** :
+[docs/etape2_modele_donnees.md, section 4](docs/etape2_modele_donnees.md),
+et le mode d'emploi Git dans [docs/recap_guide_branches.md](docs/recap_guide_branches.md).
+
 ## Structure du repo
 
 ```
@@ -43,7 +48,11 @@ Chaque fichier CSV a un seul responsable — une seule personne ne peut pas
 │   └── img/                         ← captures et graphiques du README
 └── scripts/
     ├── etape1_diagnostic_transaction.py
-    └── etape1_diagnostic_product.py
+    ├── etape1_diagnostic_product.py
+    ├── etape2_star_schema.py        ← génère l'image du schéma en étoile
+    ├── etape3_clean_transaction.py  ← nettoyage transaction.csv
+    ├── etape3_clean_product.py     ← nettoyage product.csv
+    └── etape3_consolidate.py       ← assemblage du schéma en étoile
 ```
 
 **Où sont les CSV ?** Ils ne sont **pas** dans le repo (trop volumineux pour
@@ -59,6 +68,8 @@ changé/nettoyé, **justifié par une logique métier** (règle d'or du cours).
 - Diagnostic `product.csv` → [docs/etape1_diagnostic_product.md](docs/etape1_diagnostic_product.md)
 - Diagnostic `price.csv` → _[à compléter par le responsable]_
 - Diagnostic `loss_rate.csv` → _[à compléter par le responsable]_
+- **Guide de passation** (tout ce qui a été fait, étape par étape, lexique
+  Git et auto-quiz) → [docs/recap_guide_branches.md](docs/recap_guide_branches.md)
 
 Faits marquants (voir les documents ci-dessus pour le détail) :
 
@@ -81,12 +92,24 @@ _Schéma en étoile (à compléter avec l'image du modèle) :_
 
 ## Étape 3 — Code de nettoyage & consolidation
 
-Stack choisie : **Python + Pandas** (scripts dans `scripts/`).
+Stack choisie : **Python + Pandas** (scripts dans `scripts/`). Chaque script
+vérifie ses propres règles de nettoyage (`assert` : nombre de lignes
+conservées, clés intactes, catégories propres) — le pipeline échoue
+bruyamment plutôt que de produire une donnée fausse.
 
-Chaque responsable écrit son script de nettoyage sur sa branche feature,
-puis les tables nettoyées sont fusionnées (merge sur `Item Code`) pour
-obtenir la vue consolidée. Le code est commité et poussé sur Git (impératif
-du cours).
+| Script | Rôle | Sortie (dans `data/clean/`, ignorée par Git) |
+|---|---|---|
+| `etape3_clean_transaction.py` | types de dates, heures en format unique, `Item Code` en texte, `is_return`, `sales_amount` | `transaction_clean.csv` — 878 503 lignes conservées |
+| `etape3_clean_product.py` | `\xa0` normalisés, libellés nettoyés, clés en texte | `product_clean.csv` — 251 lignes, 6 catégories propres |
+| `etape3_consolidate.py` | assemblage du schéma en étoile (étape 2) | `fact_sales.csv`, `dim_product.csv`, `dim_date.csv`, `consolidated_sales.csv` |
+
+Le contrat d'équipe (étape 2 §4) définit les fichiers attendus de chacun :
+la consolidation prend automatiquement en compte `price_clean.csv` et
+`loss_rate_clean.csv` dès qu'ils sont posés dans `data/clean/` par le
+responsable (marge brute via le prix d'achat, taux de perte par produit).
+
+Chiffres clés produits par le pipeline : CA net 12 derniers mois
+(07/2022 → 06/2023) ≈ 1,15 M RMB, quantité vendue sans retours ≈ 471 t.
 
 ## Étape 4 — Stratégie Git d'équipe (« le push sans conflit »)
 
@@ -112,12 +135,15 @@ Règles de collaboration :
 5. `develop` ne part dans `main` qu'une fois le pipeline complet validé
    (`git checkout main && git merge develop`).
 
-## Rejouer les diagnostics
+## Rejouer les diagnostics et le pipeline
 
 ```bash
 # depuis la racine du repo
-python scripts/etape1_diagnostic_transaction.py
+python scripts/etape1_diagnostic_transaction.py   # diagnostics
 python scripts/etape1_diagnostic_product.py
+python scripts/etape3_clean_transaction.py        # nettoyages
+python scripts/etape3_clean_product.py
+python scripts/etape3_consolidate.py              # assemblage final
 ```
 
 Prérequis : Python 3.10+, `pip install pandas matplotlib`.
