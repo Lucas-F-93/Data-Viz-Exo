@@ -68,6 +68,8 @@ changé/nettoyé, **justifié par une logique métier** (règle d'or du cours).
 - Diagnostic `product.csv` → [docs/etape1_diagnostic_product.md](docs/etape1_diagnostic_product.md)
 - Diagnostic `price.csv` → _[à compléter par le responsable]_
 - Diagnostic `loss_rate.csv` → _[à compléter par le responsable]_
+- **Guide de passation** (tout ce qui a été fait, étape par étape, lexique
+  Git et auto-quiz) → [docs/recap_guide_branches.md](docs/recap_guide_branches.md)
 
 Faits marquants (voir les documents ci-dessus pour le détail) :
 
